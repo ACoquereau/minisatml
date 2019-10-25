@@ -46,6 +46,7 @@ type env = {
   mutable expensive_ccmin : bool;
   mutable polarity_mode : polarity;
   mutable verbosity : int;
+  mutable print_model : bool;
 
   mutable starts : int;
   mutable decisions : int;
@@ -113,6 +114,7 @@ let env = {
   expensive_ccmin = false;
   polarity_mode = dummy_polarity;
   verbosity = 0;
+  print_model = false;
 
   starts = 0;
   decisions = 0;
@@ -142,6 +144,9 @@ let set_trace b =
 
 let set_verbosity n =
   env.verbosity <- n
+
+let set_model b =
+  env.print_model <- b
 
 let heap_comp i j = (Vec.get env.activity i) > (Vec.get env.activity j)
 
@@ -877,6 +882,17 @@ let search oc nof_conflicts nof_learnts =
     Lbool.LUndef
   with Search b -> b
 
+let print_lbool b = 
+  if b = Lbool.LTrue then '1' else if b = Lbool.LFalse then '0' else assert false
+
+let print_model () =
+  if env.print_model then
+    let oc = open_out "model.txt" in
+    Vec.iteri (fun i l ->
+        Printf.fprintf oc "%d : %c\n%!" i (print_lbool l);
+        Printf.fprintf oc "-%d : %c\n%!" i (print_lbool (Lbool.inv  l))
+      ) env.assigns;
+    close_out oc
 
 let solve_lit oc assumps =
   Vec.clear env.model dummy_lbool;
@@ -921,7 +937,8 @@ let solve_lit oc assumps =
       for i = 0 to nVars () - 1 do
         Vec.set env.model i (value i)
       done;
-      verifyModel ()
+      print_model ();
+      verifyModel ();
     end
     else begin
       assert (!status = Lbool.LFalse);

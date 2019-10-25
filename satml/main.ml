@@ -17,11 +17,16 @@ let usage = "usage: satml [options] file.<cnf>"
 let verbosity = ref 0
 let debug = ref false
 let trace = ref false
+let model = ref false
 
 let spec = [
   "-verbosity",
   Arg.Set_int verbosity,
   " verbosity";
+
+  "-model",
+  Arg.Set model,
+  " print model in model.txt";
 
   "-debug",
   Arg.Set debug,
@@ -47,6 +52,7 @@ let main =
   Solver.set_verbosity !verbosity;
   Solver.set_debug !debug;
   Solver.set_trace !trace;
+  Solver.set_model !model;
 
   let oc = open_out "./trace_decision_satml" in
   Sys.set_signal Sys.sigint (Sys.Signal_handle (fun _signum -> Printf.eprintf "\nTERMINATED\n%!";Solver.printStats 0.;close_out oc;exit 2));
